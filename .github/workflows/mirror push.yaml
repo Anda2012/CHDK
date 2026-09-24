@@ -1,0 +1,36 @@
+name: Mirror CHDK SVN to Repo
+
+on:
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  mirror:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install SVN
+        run: sudo apt-get install -y subversion
+
+      - name: Checkout CHDK release-1_6 from SVN
+        run: |
+          svn checkout https://subversion.assembla.com/svn/chdk/branches/release-1_6/ chdk-src \
+            --username guest --password guest --non-interactive --trust-server-cert
+
+      - name: Move source into repo root
+        run: |
+          rsync -av --exclude=".github" --exclude=".svn" chdk-src/ .
+          rm -rf chdk-src/
+
+      - name: Commit and push
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add -A
+          git commit -m "Mirror CHDK SVN release-1_6"
+          git push
