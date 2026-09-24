@@ -1,0 +1,26 @@
+name: Mirror CHDK SVN to GitHub
+
+on:
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  mirror:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Install SVN
+        run: sudo apt-get install -y subversion
+
+      - name: Checkout CHDK release-1_6 from SVN
+        run: |
+          svn checkout https://subversion.assembla.com/svn/chdk/branches/release-1_6/ chdk \
+            --username guest --password guest --non-interactive --trust-server-cert
+
+      - name: Zip the source
+        run: zip -r chdk-release-1_6.zip chdk/
+
+      - name: Upload as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chdk-release-1_6
+          path: chdk-release-1_6.zip
